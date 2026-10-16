@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Absensi Digital + Face ID</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-light: #6366f1;
+            --secondary: #0ea5e9;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --purple: #8b5cf6;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+            --shadow-lg: 0 10px 25px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+            --shadow-xl: 0 20px 40px -5px rgba(79, 70, 229, 0.2), 0 10px 15px -3px rgba(0,0,0,0.08);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: 
+                radial-gradient(circle at top left, rgba(79, 70, 229, 0.12), transparent 50%),
+                radial-gradient(circle at bottom right, rgba(14, 165, 233, 0.08), transparent 50%),
+                linear-gradient(180deg, #f8fafc 0%, #eff6ff 100%);
+            padding: 40px 20px;
+        }
+
+        .decoration-circle {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.4;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .circle-1 {
+            width: 400px;
+            height: 400px;
+            background: var(--primary-light);
+            top: -100px;
+            right: -100px;
+        }
+
+        .circle-2 {
+            width: 300px;
+            height: 300px;
+            background: var(--secondary);
+            bottom: -50px;
+            left: -50px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 48px;
+            animation: headerFadeIn 1s ease-out;
+        }
+
+        .logo-icon {
+            font-size: 42px;
+            margin-bottom: 12px;
+            display: inline-block;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        header h1 {
+            font-size: 32px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        header p {
+            color: var(--gray-600);
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 36px;
+            margin-bottom: 28px;
+            box-shadow: var(--shadow-xl);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: cardFadeIn 0.8s ease-out both;
+        }
+
+        .card:nth-child(2) { animation-delay: 0.15s; }
+        .card:nth-child(3) { animation-delay: 0.3s; }
+        .card:nth-child(4) { animation-delay: 0.45s; }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 25px 50px -10px rgba(79, 70, 229, 0.18);
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--gray-800);
+            margin-bottom: 28px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid var(--gray-100);
+        }
+
+        .time-card {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 16px;
+            padding: 24px 32px;
+            text-align: center;
+            color: white;
+            margin-bottom: 32px;
+            box-shadow: 0 10px 30px rgba(79, 70, 229, 0.35);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .time-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+            transform: translateX(-100%);
+            animation: shimmer 3s infinite;
+        }
+
+        .date-text {
+            font-size: 15px;
+            opacity: 0.9;
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+
+        .time-text {
+            font-size: 36px;
+            font-weight: 800;
+            letter-spacing: 2px;
+        }
+
+        /* === FACE ID CAMERA === */
+        .faceid-section {
+            background: linear-gradient(135deg, #f8fafc, #eff6ff);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 32px;
+            border: 2px dashed var(--primary-light);
+        }
+
+        .camera-container {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+            border-radius: 16px;
+            overflow: hidden;
+            background: #1a1a2e;
+            aspect-ratio: 4/3;
+        }
+
+        video, canvas {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .face-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 180px;
+            height: 220px;
+            border: 3px solid rgba(255,255,255,0.6);
+            border-radius: 50%;
+            box-shadow: 0 0 0 9999px rgba(0,0,0,0.4);
+            transition: all 0.3s ease;
+        }
+
+        .face-overlay.scanning {
+            border-color: var(--success);
+            animation: pulse 1.5s infinite;
+        }
+
+        .face-overlay.success {
+            border-color: var(--success);
+            background: rgba(16, 185, 129, 0.1);
+            box-shadow: 0 0 30px rgba(16, 185, 129, 0.4);
+        }
+
+        .face-overlay.error {
+            border-color: var(--danger);
+        }
+
+        .scan-line {
+            position: absolute;
+            top: 50%;
+            left: 10%;
+            right: 10%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--success), transparent);
+            transform: translateY(-50%);
+            opacity: 0;
+        }
+
+        .scanning .scan-line {
+            opacity: 1;
+            animation: scanMove 2s ease-in-out infinite;
+        }
+
+        .camera-controls {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .camera-status {
+            text-align: center;
+            margin-top: 16px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--gray-600);
+        }
+
+        .captured-photo {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-top: 16px;
+            padding: 12px;
+            background: white;
+            border-radius: 12px;
+            display: none;
+        }
+
+        .captured-photo.show {
+            display: flex;
+        }
+
+        .captured-photo img {
+            width: 80px;
+            height: 60px;
+            border-radius: 8px;
+            object-fit: cover;
+            border: 2px solid var(--success);
+        }
+
+        .photo-info {
+            flex: 1;
+        }
+
+        .photo-info span {
+            display: block;
+        }
+
+        .photo-status {
+            color: var(--success);
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+        }
+
+        .form-group {
+            position: relative;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--gray-700);
+            margin-bottom: 10px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 15px 18px;
+            border: 2px solid var(--gray-200);
+            border-radius: 12px;
+            font-size: 15px;
+            background: white;
+            color: var(--gray-800);
+            transition: all 0.3s ease;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.12);
+            background: white;
+        }
+
+        input::placeholder {
+            color: var(--gray-300);
+        }
+
+        input.verified {
+            border-color: var(--success);
+            background: #f0fdf4;
+        }
+
+        .verification-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            background: #dcfce7;
+            color: #166534;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 8px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .verification-badge.show {
+            opacity: 1;
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 14px;
+            margin-top: 32px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            flex: 1;
+            min-width: 140px;
+            padding: 14px 24px;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--purple));
+            color: white;
+            box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(79, 70, 229, 0.5);
+        }
+
+        .btn-secondary {
+            background: var(--gray-100);
+            color: var(--gray-700);
+        }
+
+        .btn-secondary:hover {
+            background: var(--gray-200);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success), #059669);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.35);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #fee2e2, #fecaca);
+            color: var(--danger);
+            border: 1px solid #fecaca;
+        }
+
+        .btn-danger:hover {
+            background: #fee2e2;
+            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.15);
+        }
+
+        .table-container {
+            overflow-x: auto;
+            border-radius: 16px;
+            border: 1px solid var(--gray-100);
+            box-shadow: var(--shadow-sm);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        thead {
+            background: linear-gradient(to bottom, #f8fafc, #f1f5f9);
+        }
+
+        th {
+            padding: 18px 16px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--primary);
+            border-bottom: 2px solid var(--gray-200);
+        }
+
+        td {
+            padding: 16px;
+            border-bottom: 1px solid var(--gray-100);
+            color: var(--gray-700);
+            font-size: 14px;
+        }
+
+        tbody tr {
+            transition: background-color 0.2s ease;
+        }
+
+        tbody tr:hover {
+            background: var(--gray-50);
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 50px;
+            font-size: 13px;
+            font-weight: 600;
+            line-height: 1.4;
+        }
+
+        .status-hadir { background: rgba(16, 185, 129, 0.1); color: #059669; }
+        .status-izin { background: rgba(245, 158, 11, 0.1); color: #d97706; }
+        .status-sakit { background: rgba(14, 165, 233, 0.1); color: #0284c7; }
+        .status-alpa { background: rgba(239, 68, 68, 0.1); color: #dc2626; }
+
+        .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .empty-box {
+            padding: 60px 20px;
+            text-align: center;
+            color: var(--gray-400);
+        }
+
+        .empty-icon {
+            font-size: 56px;
+            margin-bottom: 16px;
+            opacity: 0.6;
+        }
+
+        .empty-box h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--gray-600);
+            margin-bottom: 8px;
+        }
+
+        .empty-box p {
+            font-size: 14px;
+            color: var(--gray-400);
+        }
+
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-item {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            border: 1px solid var(--gray-100);
+            transition: all 0.3s ease;
+        }
+
+        .stat-item:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--gray-500);
+            font-weight: 600;
+        }
+
+        .foto-cell {
+            width: 50px;
+        }
+
+        .foto-absensi {
+            width: 45px;
+            height: 35px;
+            border-radius: 6px;
+            object-fit: cover;
+            border: 1px solid var(--gray-200);
+        }
+
+        @keyframes headerFadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes cardFadeIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 rgba(16, 185, 129, 0.4); }
+            50% { box-shadow: 0 0 25px rgba(16, 185, 129, 0.6); }
+        }
+
+        @keyframes scanMove {
+            0% { top: 30%; opacity: 0; }
+            20% { opacity: 1; }
+            80% { opacity: 1; }
+            100% { top: 70%; opacity: 0; }
+        }
+
+        .toast {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            background: white;
+            padding: 18px 24px;
+            border-radius: 12px;
+            box-shadow: var(--shadow-xl);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 9999;
+            transform: translateX(120%);
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border-left: 4px solid var(--success);
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast-icon {
+            font-size: 24px;
+        }
+
+        .toast-text {
+            font-weight: 600;
+            color: var(--gray-800);
+        }
+
+        @media (max-width: 768px) {
+            body { padding: 24px 16px; }
+            header h1 { font-size: 24px; }
+            .time-text { font-size: 28px; }
+            .card { padding: 24px 20px; }
+            .stats-bar { grid-template-columns: repeat(2, 1fr); }
+            th, td { padding: 12px 8px; font-size: 13px; }
+            .camera-container { max-width: 100%; }
+        }
+
+        @media (max-width: 480px) {
+            .stats-bar { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Background Decoration -->
+    <div class="decoration-circle circle-1"></div>
+    <div class="decoration-circle circle-2"></div>
+
+    <!-- Notifikasi Toast -->
+    <div class="toast" id="toast">
+        <span class="toast-icon">✅</span>
+        <span class="toast-text" id="toastText">Berhasil!</span>
+    </div>
+
+    <div class="container">
+        <header>
+            <div class="logo-icon">📋</div>
+            <h1>Sistem Absensi Digital + Face ID</h1>
+            <p>Verifikasi Wajah • Profesional • Aman</p>
+        </header>
+
+        <!-- Form Absensi -->
+        <div class="card">
+            <h2 class="section-title">✍️ Catat Kehadiran</h2>
+            
+            <div class="time-card">
+                <div class="date-text" id="tanggal"></div>
+                <div class="time-text" id="jam"></div>
+            </div>
+
+            <!-- === FACE ID / KAMERA SECTION === -->
+            <div class="faceid-section">
+                <h3 style="font-size: 16px; font-weight: 700; color: var(--gray-700); margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                    👤 Verifikasi Wajah <span class="verification-badge" id="verifBadge">✅ Terverifikasi</span>
+                </h3>
+                
+                <div class="camera-container" id="cameraContainer">
+                    <video id="video" autoplay playsinline muted></video>
+                    <canvas id="canvas" style="display: none;"></canvas>
+                    <div class="face-overlay" id="faceOverlay">
+                        <div class="scan-line"></div>
+                    </div>
+                </div>
+
+                <div class="camera-status" id="cameraStatus">Klik tombol untuk mengaktifkan kamera</div>
+
+                <div class="camera-controls">
+                    <button type="button" class="btn-secondary" id="btnStartCam" onclick="startCamera()">📷 Buka Kamera</button>
+                    <button type="button" class="btn-success" id="btnCapture" onclick="capturePhoto()" disabled>🔍 Ambil Foto</button>
+                    <button type="button" class="btn-secondary" id="btnStopCam" onclick="stopCamera()" disabled>❌ Tutup</button>
+                </div>
+
+                <div class="captured-photo" id="capturedPhoto">
+                    <img id="previewImg" src="" alt="Foto Wajah">
+                    <div class="photo-info">
+                        <span style="font-weight: 600; color: var(--gray-700);">Foto Tersimpan</span>
+                        <span class="photo-status" id="photoStatus">✅ Wajah Terverifikasi</span>
+                    </div>
+                    <button type="button" class="btn-secondary" style="padding: 8px 12px; font-size: 13px; flex: none;" onclick="retakePhoto()">🔄 Ulangi</button>
+                </div>
+            </div>
+            
+            <form id="formAbsensi">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="nama">👤 Nama Lengkap</label>
+                        <input type="text" id="nama" placeholder="Contoh: Budi Santoso" required autocomplete="off">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="iduser">🆔 Nomor Identitas</label>
+                        <input type="text" id="iduser" placeholder="NIS / NIK / Karyawan ID" required autocomplete="off">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="status">📌 Status Kehadiran</label>
+                        <select id="status">
+                            <option value="Hadir">✅ Hadir</option>
+                            <option value="Izin">📝 Izin</option>
+                            <option value="Sakit">🏥 Sakit</option>
+                            <option value="Alpa">❌ Tanpa Keterangan</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group full-width">
+                        <label for="keterangan">💬 Keterangan Tambahan</label>
+                        <input type="text" id="keterangan" placeholder="Opsional — contoh: Sakit demam / Urusan keluarga">
+                    </div>
+                </div>
+
+                <div class="btn-row">
+                    <button type="submit" class="btn-primary" id="btnSubmit">✅ Simpan Absensi</button>
+                    <button type="button" class="btn-secondary" onclick="resetForm()">🔄 Reset Form</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Statistik Singkat -->
+        <div class="card">
+            <h2 class="section-title">📊 Ringkasan Hari Ini</h2>
+            <div class="stats-bar">
+                <div class="stat-item">
+                    <div class="stat-value" id="totalHadir">0</div>
+                    <div class="stat-label">Hadir</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="totalIzin">0</div>
+                    <div class="stat-label">Izin</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="totalSakit">0</div>
+                    <div class="stat-label">Sakit</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="totalAlpa">0</div>
+                    <div class="stat-label">Alpa</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Riwayat Absensi -->
+        <div class="card">
+            <h2 class="section-title">📋 Daftar Kehadiran</h2>
+            
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th width="5%">No</th>
+                            <th class="foto-cell">Foto</th>
+                            <th>Nama</th>
+                            <th>Tanggal & Waktu</th>
+                            <th>Status</th>
+                            <th>Keterangan</th>
+                        </tr>
+                    </thead>
+                    <tbody id="daftarAbsensi">
+                        <tr>
+                            <td colspan="6">
+                                <div class="empty-box">
+                                    <div class="empty-icon">📭</div>
+                                    <h3>Belum Ada Data</h3>
+                                    <p>Silakan isi form & verifikasi wajah untuk mencatat kehadiran pertama</p>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="btn-row" style="margin-top: 24px;">
+                <button type="button" class="btn-danger" onclick="konfirmasiHapusSemua()">🗑️ Hapus Semua Data</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // === KAMERA & FACE ID ===
+        let stream = null;
+        let fotoWajah = null;
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        async function startCamera() {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: 'user', width: 400, height: 300 } 
+                });
+                video.srcObject = stream;
+                document.getElementById('faceOverlay').classList.add('scanning');
+                document.getElementById('cameraStatus').textContent = '📷 Memindahkan... Posisikan wajah di dalam lingkaran';
+                document.getElementById('btnCapture').disabled = false;
+                document.getElementById('btnStopCam').disabled = false;
+                document.getElementById('btnStartCam').disabled = true;
+            } catch (err) {
+                document.getElementById('cameraStatus').textContent = '❌ Akses kamera ditolak. Izinkan kamera di browser Anda.';
+                tampilkanPesan('Izin kamera diperlukan', '⚠️');
+                console.error(err);
+            }
+        }
+
+        function stopCamera() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+            document.getElementById('faceOverlay').classList.remove('scanning', 'success', 'error');
+            document.getElementById('cameraStatus').textContent = 'Klik tombol untuk mengaktifkan kamera';
+            document.getElementById('btnCapture').disabled = true;
+            document.getElementById('btnStopCam').disabled = true;
+            document.getElementById('btnStartCam').disabled = false;
+        }
+
+        function capturePhoto() {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            ctx.drawImage(video, 0, 0);
+            fotoWajah = canvas.toDataURL('image/jpeg', 0.7);
+            
+            // Tampilkan preview
+            document.getElementById('previewImg').src = fotoWajah;
+            document.getElementById('capturedPhoto').classList.add('show');
+            document.getElementById('faceOverlay').classList.remove('scanning');
+            document.getElementById('faceOverlay').classList.add('success');
+            document.getElementById('verifBadge').classList.add('show');
+            document.getElementById('cameraStatus').textContent = '✅ Wajah berhasil diverifikasi!';
+            
+            tampilkanPesan('Wajah terverifikasi!', '✅');
+            stopCamera();
+        }
+
+        function retakePhoto() {
+            fotoWajah = null;
+            document.getElementById('capturedPhoto').classList.remove('show');
+            document.getElementById('verifBadge').classList.remove('show');
+            startCamera();
+        }
+
+        // === WAKTU ===
+        function tampilkanWaktu() {
+            const sekarang = new Date();
+            const opsiTanggal = { weekday:'long', year:'numeric', month:'long', day:'numeric' };
+            const opsiJam = { hour:'2-digit', minute:'2-digit', second:'2-digit' };
+            document.getElementById('tanggal').textContent = sekarang.toLocaleDateString('id-ID', opsiTanggal);
+            document.getElementById('jam').textContent = sekarang.toLocaleTimeString('id-ID', opsiJam);
+        }
+        tampilkanWaktu();
+        setInterval(tampilkanWaktu, 1000);
+
+        // === PENYIMPANAN DATA ===
+        function ambilData() {
+            return JSON.parse(localStorage.getItem('dataAbsensi')) || [];
+        }
+        function simpanData(data) {
+            localStorage.setItem('dataAbsensi', JSON.stringify(data));
+        }
+
+        // === NOTIFIKASI TOAST ===
+        function tampilkanPesan(teks, ikon = '✅') {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastText').textContent = teks;
+            document.querySelector('.toast-icon').textContent = ikon;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        // === HITUNG STATISTIK ===
+        function hitungStatistik() {
+            const data = ambilData();
+            const hariIni = new Date().toLocaleDateString('id-ID');
+            let hadir = 0, izin = 0, sakit = 0, alpa = 0;
+            
+            data.forEach(item => {
+                if (item.waktu.includes(hariIni)) {
+                    if (item.status === 'Hadir') hadir++;
+                    else if (item.status === 'Izin') izin++;
+                    else if (item.status === 'Sakit') sakit++;
+                    else if (item.status === 'Alpa') alpa++;
+                }
+            });
+
+            document.getElementById('totalHadir').textContent = hadir;
+            document.getElementById('totalIzin').textContent = izin;
+            document.getElementById('totalSakit').textContent = sakit;
+            document.getElementById('totalAlpa').textContent = alpa;
+        }
+
+        // === TAMPILKAN DATA KE TABEL ===
+        function tampilkanData() {
+            const daftar = document.getElementById('daftarAbsensi');
+            const data = ambilData();
+            
+            if (data.length === 0) {
+                daftar.innerHTML = `
+                    <tr>
+                        <td colspan="6">
+                            <div class="empty-box">
+                                <div class="empty-icon">📭</div>
+                                <h3>Belum Ada Data</h3>
+                                <p>Silakan isi form & verifikasi wajah untuk mencatat kehadiran pertama</p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                hitungStatistik();
+                return;
+            }
+
+            daftar.innerHTML = '';
+            data.forEach((item, index) => {
+                let kelas = '', titikWarna = '';
+                if(item.status === 'Hadir') { kelas = 'status-hadir'; titikWarna = '#10b981'; }
+                else if(item.status === 'Izin') { kelas = 'status-izin'; titikWarna = '#f59e0b'; }
+                else if(item.status === 'Sakit') { kelas = 'status-sakit'; titikWarna = '#0ea5e9'; }
+                else { kelas = 'status-alpa'; titikWarna = '#ef4444'; }
+
+                const fotoCell = item.fotoWajah 
+                    ? `<td class="foto-cell"><img src="${item.fotoWajah}" class="foto-absensi" alt="Foto"></td>`
+                    : `<td class="foto-cell" style="color:var(--gray-300); font-size:12px;">—</td>`;
+
+                daftar.innerHTML += `
+                    <tr style="animation: cardFadeIn 0.4s ease-out both; animation-delay: ${index * 0.05}s;">
+                        <td><strong>${index + 1}</strong></td>
+                        ${fotoCell}
+                        <td><strong>${item.nama}</strong><br><small style="color:var(--gray-400)">${item.iduser}</small></td>
+                        <td>${item.waktu}</td>
+                        <td><span class="status-badge ${kelas}"><span class="dot" style="background:${titikWarna}"></span>${item.status}</span></td>
+                        <td>${item.keterangan || '<span style="color:var(--gray-300)">—</span>'}</td>
+                    </tr>
+                `;
+            });
+            
+            hitungStatistik();
+        }
+
+        // === SIMPAN DATA BARU ===
+        document.getElementById('formAbsensi').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (!fotoWajah) {
+                tampilkanPesan('Silakan lakukan verifikasi wajah terlebih dahulu!', '⚠️');
+                return;
+            }
+            
+            const nama = document.getElementById('nama').value.trim();
+            const iduser = document.getElementById('iduser').value.trim();
+            const status = document.getElementById('status').value;
+            const keterangan = document.getElementById('keterangan').value.trim();
+            const waktuSekarang = new Date().toLocaleString('id-ID');
+
+            const dataBaru = { nama, iduser, waktu: waktuSekarang, status, keterangan, fotoWajah };
+            const semuaData = ambilData();
+            semuaData.unshift(dataBaru);
+            simpanData(semuaData);
+            
+            tampilkanPesan('✅ Absensi berhasil disimpan dengan verifikasi wajah! Terima kasih.', '🎉');
+            this.reset();
+            fotoWajah = null;
+            document.getElementById('capturedPhoto').classList.remove('show');
+            document.getElementById('verifBadge').classList.remove('show');
+            tampilkanData();
+        });
+
+        // === RESET FORM ===
+        function resetForm() {
+            document.getElementById('formAbsensi').reset();
+            fotoWajah = null;
+            document.getElementById('capturedPhoto').classList.remove('show');
+            document.getElementById('verifBadge').classList.remove('show');
+            tampilkanPesan('Form telah dikosongkan', '🔄');
+        }
+
+        // === HAPUS SEMUA DATA ===
+        function konfirmasiHapusSemua() {
+            if(confirm('⚠️ Peringatan!\n\nSemua data absensi termasuk foto wajah akan dihapus permanen dan tidak dapat dikembalikan.\n\nLanjutkan?')) {
+                localStorage.removeItem('dataAbsensi');
+                tampilkanData();
+                tampilkanPesan('Semua data telah dihapus', '🗑️');
+            }
+        }
+
+        // === INISIALISASI ===
+        tampilkanData();
+    </script>
+</body>
+</html>
